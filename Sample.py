@@ -8,11 +8,12 @@
 
 import Leap, sys, thread, time
 from Leap import CircleGesture, KeyTapGesture, ScreenTapGesture, SwipeGesture
-
+from pymouse import PyMouse
 import matplotlib as mpl
 from mpl_toolkits.mplot3d import Axes3D
 import numpy as np
 import matplotlib.pyplot as plt
+from matplotlib.widgets import Cursor
 import time
 import math
 
@@ -34,6 +35,8 @@ plt.show()
 
 move_velocity = 100
 minValue = 0.5
+
+mouse = PyMouse()
 
 class SampleListener(Leap.Listener):
     finger_names = ['Thumb', 'Index', 'Middle', 'Ring', 'Pinky']
@@ -109,7 +112,60 @@ class SampleListener(Leap.Listener):
                 print "Not Fist!"
 
             if checkPointing(hand):
+                self.process_gestures(controller)
+                
                 print "Pointing!"
+                
+                finger = hand.fingers[0]
+                screen_to_choose = None
+                position = None
+                chosen_screen = False
+                self.screens = controller.calibrated_screens
+                #for screen in [self.screens[0]]:
+                for screen in self.screens:
+                    candidate = screen.intersect(finger, True)
+                        
+                    x_pos = candidate.x
+                    y_pos = candidate.y
+                        
+                        # Throws out datapoints when you point off screen - have to figure out in-bounds geometry for multiscreen
+                    if not (math.isnan(x_pos) or math.isnan(y_pos)):
+                        screen_to_choose = screen
+                        position = candidate
+                        chosen_screen = True
+
+
+                if not chosen_screen: return
+                    
+
+                x_pixels = position.x * screen_to_choose.width_pixels
+                y_pixels = screen_to_choose.height_pixels - position.y * screen_to_choose.height_pixels
+                    
+                    # currently only sets it in relation to the primary screen
+                mouse.move(x_pixels,y_pixels)                    
+
+
+                finger_pos = finger.joint_position(3)
+                mouse.move(10*int(finger_pos[0]), 10* int(finger_pos[1]))
+            
+                
+                print(finger.joint_position(3))
+                
+               
+##                fig = plt.figure(figsize=(8, 6))
+##                ax = fig.add_subplot(111, axisbg='#FFFFCC')
+##
+##                x, y = 4*(np.random.rand(2, 100) - .5)
+##                ax.plot(x, y, 'o')
+##                ax.set_xlim(-2, 2)
+##                ax.set_ylim(-2, 2)
+##
+##                # set useblit = True on gtkagg for enhanced performance
+##                cursor = Cursor(ax, useblit=True, color='red', linewidth=2)
+##
+##                plt.show()
+##                                     
+                
             else:
                 print "Not pointing!"
 
@@ -199,6 +255,23 @@ class SampleListener(Leap.Listener):
         if not (frame.hands.is_empty and frame.gestures().is_empty):
             print ""
 
+
+     def process_gestures(self, controller):
+        frame = controller.frame()
+        hand = frame.hands[0]
+
+        if len(hand.fingers) < 2: return
+
+        x_pos = self.mouse.position()[0]
+        y_pos = self.mouse.position()[1]
+        for gesture in frame.gestures():
+            if gesture.type == Leap.Gesture.TYPE_SCREEN_TAP:
+                if len(hand.fingers) == 2:
+                    self.mouse.click(x_pos, y_pos, 1)
+                elif len(hand.fingers) == 3:
+                    self.mouse.click(x_pos, y_pos, 2)
+                break # hack so that you only count one click with multi-finger gesture
+    
     def state_string(self, state):
         if state == Leap.Gesture.STATE_START:
             return "STATE_START"
