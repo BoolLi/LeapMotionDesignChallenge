@@ -47,7 +47,42 @@ plt.show()
 
 
 
+#Smooths the mouse's position
+class mouse_position_smoother(object):
+    def __init__(self, smooth_aggressiveness, smooth_falloff):
+        #Input validation
+        if smooth_aggressiveness < 1:
+            raise Exception("Smooth aggressiveness must be greater than 1.")
+        if smooth_falloff < 1:
+            raise Exception("Smooth falloff must be greater than 1.0.")
+        self.previous_positions = []
+        self.smooth_falloff = smooth_falloff
+        self.smooth_aggressiveness = int(smooth_aggressiveness)
+    def update(self, (x,y)):
+        self.previous_positions.append((x,y))
+        if len(self.previous_positions) > self.smooth_aggressiveness:
+            del self.previous_positions[0]
+        return self.get_current_smooth_value()
+    def get_current_smooth_value(self):
+        smooth_x = 0
+        smooth_y = 0
+        total_weight = 0
+        num_positions = len(self.previous_positions)
+        for position in range(0, num_positions):
+            weight = 1 / (self.smooth_falloff ** (num_positions - position))
+            total_weight += weight
+            smooth_x += self.previous_positions[position][0] * weight
+            smooth_y += self.previous_positions[position][1] * weight
+        smooth_x /= total_weight
+        smooth_y /= total_weight
+        return smooth_x, smooth_y
+
+
 mouse = PyMouse()
+
+smooth_aggressiveness=6
+smooth_falloff=1.3
+mouse_position_smoother = mouse_position_smoother(smooth_aggressiveness, smooth_falloff)
 
 class SampleListener(Leap.Listener):
     finger_names = ['Thumb', 'Index', 'Middle', 'Ring', 'Pinky']
@@ -118,7 +153,7 @@ class SampleListener(Leap.Listener):
                 finishZoom()
 
             if checkPointing(hand):
-                self.process_gestures(controller)
+              #  self.process_gestures(controller)
                 
                 print "Pointing!"
                 
@@ -126,7 +161,7 @@ class SampleListener(Leap.Listener):
                 screen_to_choose = None
                 position = None
                 chosen_screen = False
-                self.screens = controller.calibrated_screens
+                self.screens = controller.located_screens
                 #for screen in [self.screens[0]]:
                 for screen in self.screens:
                     candidate = screen.intersect(finger, True)
@@ -146,9 +181,13 @@ class SampleListener(Leap.Listener):
 
                 x_pixels = position.x * screen_to_choose.width_pixels
                 y_pixels = screen_to_choose.height_pixels - position.y * screen_to_choose.height_pixels
-                    
+
+                x_pixels,y_pixels = mouse_position_smoother.update((x_pixels,y_pixels))
+                print "x pix " + str(x_pixels)
+                print "y pix " + str(y_pixels)
+                
                     # currently only sets it in relation to the primary screen
-                mouse.move(x_pixels,y_pixels)                    
+                mouse.move(int(x_pixels), int(y_pixels))
 
 
                 #finger_pos = finger.joint_position(3)
@@ -263,19 +302,20 @@ class SampleListener(Leap.Listener):
 
 
     def process_gestures(self, controller):
+        global mouse
         frame = controller.frame()
         hand = frame.hands[0]
 
         if len(hand.fingers) < 2: return
 
-        x_pos = self.mouse.position()[0]
-        y_pos = self.mouse.position()[1]
+        x_pos = mouse.position()[0]
+        y_pos = mouse.position()[1]
         for gesture in frame.gestures():
             if gesture.type == Leap.Gesture.TYPE_SCREEN_TAP:
                 if len(hand.fingers) == 2:
-                    self.mouse.click(x_pos, y_pos, 1)
+                    mouse.click(x_pos, y_pos, 1)
                 elif len(hand.fingers) == 3:
-                    self.mouse.click(x_pos, y_pos, 2)
+                    mouse.click(x_pos, y_pos, 2)
                 break # hack so that you only count one click with multi-finger gesture
     
     def state_string(self, state):
@@ -391,3 +431,7 @@ def updateCurrentLimits():
 
 if __name__ == "__main__":
     main()
+
+
+
+
