@@ -17,6 +17,9 @@ from matplotlib.widgets import Cursor
 import time
 import math
 
+move_velocity = 100
+minValue = 0.5
+
 mpl.rcParams['legend.fontsize'] = 10
 
 fig = plt.figure()
@@ -29,12 +32,20 @@ y = r * np.cos(theta)
 ax.plot(x, y, z, label='parametric curve')
 ax.legend()
 
+# global variables for scaling
+xMin = 0
+xMax = 0
+yMin = 0
+yMax = 0
+zMin = 0
+zMax = 0
+is_zoom_mode = False
+curYPosition = 0
+
 plt.ion()
 plt.show()
 
 
-move_velocity = 100
-minValue = 0.5
 
 mouse = PyMouse()
 
@@ -98,18 +109,13 @@ class SampleListener(Leap.Listener):
             
 
             if checkPalm(hand):
-                ax.view_init(elev= -1 * move_velocity  * normal[2], azim = move_velocity  * math.atan(direction[2] / direction[0]))
-                plt.draw()
-                #print "drawn? " + str(ii)
-                time.sleep(0.04)
-            else:
-                print "not palm"
+                rotateGraph(hand)
 
 
             if checkFist(hand):
-                print "Fist!"
+                zoomGraph(hand)
             else:
-                print "Not Fist!"
+                finishZoom()
 
             if checkPointing(hand):
                 self.process_gestures(controller)
@@ -175,7 +181,7 @@ class SampleListener(Leap.Listener):
                 print "Drawing"
             else:
                 print "now drawing"
-            
+
 
 
             
@@ -342,25 +348,45 @@ def checkDrawing(hand):
         else:
             return False
 
-'''
-   for(var i=0;i<hand.fingers.length;i++){
-      var finger = hand.fingers[i];
-      var meta = finger.bones[0].direction();
-      var proxi = finger.bones[1].direction();
-      var inter = finger.bones[2].direction();
-      var dMetaProxi = Leap.vec3.dot(meta,proxi);
-      var dProxiInter = Leap.vec3.dot(proxi,inter);
-      sum += dMetaProxi;
-      sum += dProxiInter
-   }
-   sum = sum/10;
+def rotateGraph(hand):
+    normal = hand.palm_normal
+    direction = hand.direction
 
-   if(sum<=minValue && getExtendedFingers(hand)==0){
-       return true;
-   }else{
-       return false;
-   }
-'''
+    ax.view_init(elev= -1 * move_velocity  * normal[2], azim = move_velocity  * math.atan(direction[2] / direction[0]))
+
+    plt.draw()
+    time.sleep(0.04)
+
+
+def zoomGraph(hand):
+    global is_zoom_mode
+    global curYPosition
+    if is_zoom_mode == False:
+        updateCurrentLimits()
+        curYPosition = hand.palm_position[2]
+        is_zoom_mode = True
+
+    diff = 0.005 ** ((curYPosition - hand.palm_position[2]) / 2000);
+    plt.axis([xMin * diff, xMax * diff, yMin * diff, yMax * diff])
+    ax.set_zlim(zMin * diff, zMax * diff)
+    plt.draw()
+    time.sleep(0.04)
+
+def finishZoom():
+    global is_zoom_mode
+    global curYPosition
+    updateCurrentLimits()
+    is_zoom_mode = False
+    curYPosition = 0
+
+def updateCurrentLimits():
+    global xMin, xMax, yMin, yMax, zMin, zMax
+    xMin = plt.axis()[0]
+    xMax = plt.axis()[1]
+    yMin = plt.axis()[2]
+    yMax = plt.axis()[3]
+    zMin = ax.get_zlim()[0]
+    zMax = ax.get_zlim()[1]
 
 
 if __name__ == "__main__":
