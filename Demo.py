@@ -9,7 +9,13 @@ RESOLUTION = 30
 
 class Demo(Tkinter.Tk):
     def __init__(self):
-        # A bunch of parameters
+        # X, Y, Z
+        self.X = 0
+        self.Y = 0
+        self.Z = 0
+        self.hasData = False
+
+        # GUI
 
         Tkinter.Tk.__init__(self)
         self.title("Very cool program")
@@ -48,6 +54,10 @@ class Demo(Tkinter.Tk):
 
         self.entry5 = Tkinter.Entry(self)
         self.entry5.grid(row = 2, column = 1)
+
+        #Error
+        self.label6 = Tkinter.Label(self, text = "", padx = 3, pady = 3)
+        self.label6.grid(row = 2, column = 3)
 
         #Plot
         self.button1 = Tkinter.Button(self, text="Plot Function", command=self.plotData, anchor=W, padx=8)
@@ -140,30 +150,43 @@ class Demo(Tkinter.Tk):
         return self.entry3.get()
 
     def plotData(self):
-        infix = self.get_function()
-        endX = float(self.get_upper_x())
-        beginX = float(self.get_lower_x())
-        endY = float(self.get_upper_y())
-        beginY = float(self.get_lower_y())
+        try:
+            infix = self.get_function()
+            endX = float(self.get_upper_x())
+            beginX = float(self.get_lower_x())
+            endY = float(self.get_upper_y())
+            beginY = float(self.get_lower_y())
 
-        X = np.linspace(beginX, endX, RESOLUTION)
-        Y = np.linspace(beginY, endY, RESOLUTION)
-        Z = np.zeros((RESOLUTION,RESOLUTION))
+            X = np.linspace(beginX, endX, RESOLUTION)
+            Y = np.linspace(beginY, endY, RESOLUTION)
+            Z = np.zeros((RESOLUTION,RESOLUTION))
 
-##        return X, Y, Z
-##
-##        postfix = translate( infix )
-##        
-##        for i in range(RESOLUTION):
-##            for j in range(RESOLUTION):
-##                Z[i][j] = transfer_to_postfix( postfix, X[i], Y[j] )
-##
-##        X,Y = np.meshgrid(X,Y)
-##
-##        fig = plt.figure()
-##        ax = fig.add_subplot(111, projection='3d')
-##        ax.plot_surface(X, Y, Z, rstride=1, cstride=1, cmap = "Oranges_r", linewidth=0, antialiased=True)
-##        plt.show()
+            postfix = translate( infix )
+            
+            for i in range(RESOLUTION):
+                for j in range(RESOLUTION):
+                    Z[i][j] = transfer_to_postfix( postfix, X[i], Y[j] )
+
+            X,Y = np.meshgrid(X,Y)
+
+            # Assign necessary variables to the self.X,Y,Z
+            
+            self.X = X
+            self.Y = Y
+            self.Z = Z
+            self.hasData = True
+        except Exception as e:
+            self.inputError()
+
+    def inputError(self):
+        print "Input Error!"
+
+    
+    def hasData(self):
+        return self.hasData
+
+    def getData(self):
+        return self.X, self.Y, self.Z
     
 app = Demo()
 app.mainloop()
