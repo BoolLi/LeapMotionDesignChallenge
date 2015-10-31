@@ -151,8 +151,8 @@ class SampleListener(Leap.Listener):
                 mouse.move(x_pixels,y_pixels)                    
 
 
-                finger_pos = finger.joint_position(3)
-                mouse.move(10*int(finger_pos[0]), 10* int(finger_pos[1]))
+                #finger_pos = finger.joint_position(3)
+                #mouse.move(10*int(finger_pos[0]), 10* int(finger_pos[1]))
             
                 
                 print(finger.joint_position(3))
@@ -262,7 +262,7 @@ class SampleListener(Leap.Listener):
             print ""
 
 
-     def process_gestures(self, controller):
+    def process_gestures(self, controller):
         frame = controller.frame()
         hand = frame.hands[0]
 
