@@ -28,6 +28,15 @@ y = r * np.cos(theta)
 ax.plot(x, y, z, label='parametric curve')
 ax.legend()
 
+xMin = plt.axis()[0]
+xMax = plt.axis()[1]
+yMin = plt.axis()[2]
+yMax = plt.axis()[3]
+zMin = ax.get_zlim()[0]
+zMax = ax.get_zlim()[1]
+
+is_zoom_mode = False
+curYPosition = 0
 plt.ion()
 plt.show()
 
@@ -97,13 +106,14 @@ class SampleListener(Leap.Listener):
             if checkPalm(hand):
                 rotateGraph(hand)
             else:
-                print "not palm"
+                #print "not palm"
+                pass
 
 
             if checkFist(hand):
-                print "Fist!"
+                zoomGraph(hand)
             else:
-                print "Not Fist!"
+                finishZoom()
 
             if checkPointing(hand):
                 print "Pointing!"
@@ -116,7 +126,7 @@ class SampleListener(Leap.Listener):
                 print "Drawing"
             else:
                 print "now drawing"
-            
+
 
 
             
@@ -269,10 +279,31 @@ def checkDrawing(hand):
 def rotateGraph(hand):
     normal = hand.palm_normal
     direction = hand.direction
-    position = hand.palm_position
     ax.view_init(elev= -1 * move_velocity  * normal[2], azim = move_velocity  * math.atan(direction[2] / direction[0]))
     plt.draw()
     time.sleep(0.04)
+
+def zoomGraph(hand):
+    global is_zoom_mode
+    global curYPosition
+    if is_zoom_mode == False:
+        curYPosition = hand.palm_position[2]
+        is_zoom_mode = True
+
+    diff = 0.005 ** ((curYPosition - hand.palm_position[2]) / 2000);
+    print diff
+    plt.axis([xMin * diff, xMax * diff, yMin * diff, yMax * diff])
+    ax.set_zlim(zMin * diff, zMax * diff)
+    plt.draw()
+    time.sleep(0.04)
+
+def finishZoom():
+    global is_zoom_mode
+    global curYPosition
+    is_zoom_mode = False
+    curYPosition = 0
+
+    
 
 
 if __name__ == "__main__":
