@@ -1,5 +1,4 @@
 import Tkinter
-from PIL import Image, ImageTk
 from Tkinter import *
 from infix2postfix import *
 import numpy as np
@@ -77,7 +76,7 @@ class Demo(Tkinter.Tk):
         self.entry6 = Tkinter.OptionMenu(self, self.var, *colorList)
         self.entry6.grid(row=2,column=3)
 
-        img = ImageTk.PhotoImage(file ="Instructions.gif")
+        img = Tkinter.PhotoImage(file ="Instructions.gif")
         self.panel = Tkinter.Label(self, image = img)
         self.panel.image = img
         self.panel.grid(row = 4, column = 0, columnspan=4,rowspan=1)
@@ -151,6 +150,3 @@ class Demo(Tkinter.Tk):
 
     def getData(self):
         return self.X, self.Y, self.Z, self.colorVal
-
-app = Demo()
-app.mainloop()
