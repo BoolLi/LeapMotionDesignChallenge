@@ -182,11 +182,8 @@ class Demo(Tkinter.Tk):
         print "Input Error!"
 
     
-    def hasData(self):
+    def hasValidData(self):
         return self.hasData
 
     def getData(self):
         return self.X, self.Y, self.Z
-    
-app = Demo()
-app.mainloop()

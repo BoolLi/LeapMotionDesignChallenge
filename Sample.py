@@ -16,6 +16,12 @@ import matplotlib.pyplot as plt
 from matplotlib.widgets import Cursor
 import time
 import math
+import Demo
+
+
+demo = Demo.Demo()
+
+
 
 move_velocity = 100
 minValue = 0.5
@@ -23,7 +29,12 @@ minValue = 0.5
 mpl.rcParams['legend.fontsize'] = 10
 
 fig = plt.figure()
-ax = Axes3D(fig)
+#ax = Axes3D(fig)
+ax = fig.add_subplot(111, projection='3d')
+x = []
+y = []
+z = []
+'''
 theta = np.linspace(-4 * np.pi, 4 * np.pi, 100)
 z = np.linspace(-2, 2, 100)
 r = z**2 + 1
@@ -31,6 +42,7 @@ x = r * np.sin(theta)
 y = r * np.cos(theta)
 ax.plot(x, y, z, label='parametric curve')
 ax.legend()
+'''
 
 # global variables for scaling
 xMin = 0
@@ -80,8 +92,8 @@ class mouse_position_smoother(object):
 
 mouse = PyMouse()
 
-smooth_aggressiveness=6
-smooth_falloff=1.3
+smooth_aggressiveness=60
+smooth_falloff=1.001
 mouse_position_smoother = mouse_position_smoother(smooth_aggressiveness, smooth_falloff)
 
 class SampleListener(Leap.Listener):
@@ -110,6 +122,7 @@ class SampleListener(Leap.Listener):
 
     def on_frame(self, controller):
         # Get the most recent frame and report some basic information
+        global x,y,z
         frame = controller.frame()
         '''
         print "Frame id: %d, timestamp: %d, hands: %d, fingers: %d, tools: %d, gestures: %d" % (
@@ -141,7 +154,15 @@ class SampleListener(Leap.Listener):
                 direction.yaw * Leap.RAD_TO_DEG) '''
 
             #print direction
-            
+
+            if demo.hasValidData() == False:
+                return
+
+            if (len(x) == 0):
+                x,y,z = demo.getData()
+                ax.plot_surface(x, y, z, rstride=1, cstride=1, cmap = "Oranges_r", linewidth=0, antialiased=True)
+                plt.show()
+
 
             if checkPalm(hand):
                 rotateGraph(hand)
@@ -339,6 +360,8 @@ def main():
     # Have the sample listener receive events from the controller
     controller.add_listener(listener)
 
+    demo.mainloop()
+
     # Keep this process running until Enter is pressed
     print "Press Enter to quit..."
     try:
@@ -395,7 +418,7 @@ def rotateGraph(hand):
     ax.view_init(elev= -1 * move_velocity  * normal[2], azim = move_velocity  * math.atan(direction[2] / direction[0]))
 
     plt.draw()
-    time.sleep(0.04)
+    time.sleep(0.01)
 
 
 def zoomGraph(hand):
@@ -410,7 +433,7 @@ def zoomGraph(hand):
     plt.axis([xMin * diff, xMax * diff, yMin * diff, yMax * diff])
     ax.set_zlim(zMin * diff, zMax * diff)
     plt.draw()
-    time.sleep(0.04)
+    time.sleep(0.01)
 
 def finishZoom():
     global is_zoom_mode
