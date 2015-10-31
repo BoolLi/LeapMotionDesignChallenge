@@ -9,6 +9,31 @@
 import Leap, sys, thread, time
 from Leap import CircleGesture, KeyTapGesture, ScreenTapGesture, SwipeGesture
 
+import matplotlib as mpl
+from mpl_toolkits.mplot3d import Axes3D
+import numpy as np
+import matplotlib.pyplot as plt
+import time
+import math
+
+mpl.rcParams['legend.fontsize'] = 10
+
+fig = plt.figure()
+ax = Axes3D(fig)
+theta = np.linspace(-4 * np.pi, 4 * np.pi, 100)
+z = np.linspace(-2, 2, 100)
+r = z**2 + 1
+x = r * np.sin(theta)
+y = r * np.cos(theta)
+ax.plot(x, y, z, label='parametric curve')
+ax.legend()
+
+plt.ion()
+plt.show()
+
+
+move_velocity = 100
+minValue = 0.5
 
 class SampleListener(Leap.Listener):
     finger_names = ['Thumb', 'Index', 'Middle', 'Ring', 'Pinky']
@@ -37,44 +62,67 @@ class SampleListener(Leap.Listener):
     def on_frame(self, controller):
         # Get the most recent frame and report some basic information
         frame = controller.frame()
-
+        '''
         print "Frame id: %d, timestamp: %d, hands: %d, fingers: %d, tools: %d, gestures: %d" % (
               frame.id, frame.timestamp, len(frame.hands), len(frame.fingers), len(frame.tools), len(frame.gestures()))
-
+        '''
         # Get hands
         for hand in frame.hands:
 
             handType = "Left hand" if hand.is_left else "Right hand"
-
+            '''
             print "  %s, id %d, position: %s" % (
                 handType, hand.id, hand.palm_position)
-
+            '''
             # Get the hand's normal vector and direction
             normal = hand.palm_normal
             direction = hand.direction
-
+            position = hand.palm_position
             # Calculate the hand's pitch, roll, and yaw angles
+            '''
             print "  pitch: %f degrees, roll: %f degrees, yaw: %f degrees" % (
                 direction.pitch * Leap.RAD_TO_DEG,
                 normal.roll * Leap.RAD_TO_DEG,
                 direction.yaw * Leap.RAD_TO_DEG)
+            '''
+            '''
+            print "  pitch: %f degrees, roll: %f degrees, yaw: %f degrees" % (
+                direction.pitch * Leap.RAD_TO_DEG,
+                normal.roll * Leap.RAD_TO_DEG,
+                direction.yaw * Leap.RAD_TO_DEG) '''
+
+            #print direction
+            '''
+            if checkFist(hand):
+                print "Fist!"
+            else:
+                print "Not Fist!"
+            '''
+
+            ax.view_init(elev= -1 * move_velocity  * normal[2], azim = move_velocity  * math.atan(direction[2] / direction[0]))
+            plt.draw()
+            #print "drawn? " + str(ii)
+            time.sleep(0.02)
+            
 
             # Get arm bone
             arm = hand.arm
+            '''
             print "  Arm direction: %s, wrist position: %s, elbow position: %s" % (
                 arm.direction,
                 arm.wrist_position,
                 arm.elbow_position)
-
+            '''
+            
             # Get fingers
             for finger in hand.fingers:
-
+                
                 print "    %s finger, id: %d, length: %fmm, width: %fmm" % (
                     self.finger_names[finger.type],
                     finger.id,
                     finger.length,
                     finger.width)
-
+                
                 # Get bones
                 for b in range(0, 4):
                     bone = finger.bone(b)
@@ -83,7 +131,9 @@ class SampleListener(Leap.Listener):
                         bone.prev_joint,
                         bone.next_joint,
                         bone.direction)
-
+                
+            
+        '''
         # Get tools
         for tool in frame.tools:
 
@@ -128,7 +178,7 @@ class SampleListener(Leap.Listener):
                 print "  Screen Tap id: %d, %s, position: %s, direction: %s" % (
                         gesture.id, self.state_names[gesture.state],
                         screentap.position, screentap.direction )
-
+        '''
         if not (frame.hands.is_empty and frame.gestures().is_empty):
             print ""
 
@@ -162,6 +212,52 @@ def main():
     finally:
         # Remove the sample listener when done
         controller.remove_listener(listener)
+
+
+
+
+
+def getExtendedFingers(hand): 
+    return len(hand.fingers.extended())
+
+
+def checkFist(hand):
+    sum = 0
+    for finger in hand.fingers:
+        print finger.bone[0]
+        '''
+        meta = finger.bone[0].direction
+        proxi = finger.bone[1].direction
+        inter = finger.bone[2].direction
+        dMetaProxi = meta.dot(proxi)
+        dProxiInter = proxi.dot(inter)
+        sum += dMetaProxi
+        sum += dProxiInter
+        '''
+    if sum <= minValue and getExtendedFingers(hand) == 0:
+        return True
+    else:
+        return False
+   
+'''
+   for(var i=0;i<hand.fingers.length;i++){
+      var finger = hand.fingers[i];
+      var meta = finger.bones[0].direction();
+      var proxi = finger.bones[1].direction();
+      var inter = finger.bones[2].direction();
+      var dMetaProxi = Leap.vec3.dot(meta,proxi);
+      var dProxiInter = Leap.vec3.dot(proxi,inter);
+      sum += dMetaProxi;
+      sum += dProxiInter
+   }
+   sum = sum/10;
+
+   if(sum<=minValue && getExtendedFingers(hand)==0){
+       return true;
+   }else{
+       return false;
+   }
+'''
 
 
 if __name__ == "__main__":

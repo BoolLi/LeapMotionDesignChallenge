@@ -24,7 +24,7 @@ plt.show()
 
 for ii in xrange(0,360,1):
     
-    ax.view_init(elev=10., azim=ii)
+    ax.view_init(elev=10, azim=ii)
     plt.draw()
     print "drawn? " + str(ii)
-    time.sleep(0.001)
+    time.sleep(0.01)
