@@ -124,10 +124,23 @@ class SampleListener(Leap.Listener):
         # Get the most recent frame and report some basic information
         global x,y,z
         frame = controller.frame()
+
+        for gesture in frame.gestures():
+            if gesture.type == Leap.Gesture.TYPE_SWIPE:
+                plt.cla()
+
         '''
         print "Frame id: %d, timestamp: %d, hands: %d, fingers: %d, tools: %d, gestures: %d" % (
               frame.id, frame.timestamp, len(frame.hands), len(frame.fingers), len(frame.tools), len(frame.gestures()))
         '''
+
+        if demo.hasNewData() == True:
+            x,y,z, color = demo.getData()
+            ax.plot_surface(x, y, z, rstride=1, cstride=1, cmap = color, linewidth=0, antialiased=True)
+            plt.draw()
+            demo.consumeData()
+
+
         # Get hands
         for hand in frame.hands:
 
@@ -155,10 +168,6 @@ class SampleListener(Leap.Listener):
 
             #print direction
 
-            if demo.hasNewData() == True:
-                x,y,z = demo.getData()
-                ax.plot_surface(x, y, z, rstride=1, cstride=1, cmap = "Oranges_r", linewidth=0, antialiased=True)
-                demo.consumeData()
 
 
             if checkPalm(hand):
@@ -356,6 +365,9 @@ def main():
 
     # Have the sample listener receive events from the controller
     controller.add_listener(listener)
+    controller.config.set("Gesture.Swipe.MinLength", 100.0)
+    controller.config.set("Gesture.Swipe.MinVelocity", 450)
+    controller.config.save()
 
     demo.mainloop()
 
