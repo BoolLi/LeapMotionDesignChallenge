@@ -34,15 +34,6 @@ ax = fig.add_subplot(111, projection='3d')
 x = []
 y = []
 z = []
-'''
-theta = np.linspace(-4 * np.pi, 4 * np.pi, 100)
-z = np.linspace(-2, 2, 100)
-r = z**2 + 1
-x = r * np.sin(theta)
-y = r * np.cos(theta)
-ax.plot(x, y, z, label='parametric curve')
-ax.legend()
-'''
 
 # global variables for scaling
 xMin = 0
@@ -129,11 +120,6 @@ class SampleListener(Leap.Listener):
             if gesture.type == Leap.Gesture.TYPE_SWIPE:
                 plt.cla()
 
-        '''
-        print "Frame id: %d, timestamp: %d, hands: %d, fingers: %d, tools: %d, gestures: %d" % (
-              frame.id, frame.timestamp, len(frame.hands), len(frame.fingers), len(frame.tools), len(frame.gestures()))
-        '''
-
         if demo.hasNewData() == True:
             x,y,z, color = demo.getData()
             ax.plot_surface(x, y, z, rstride=1, cstride=1, cmap = color, linewidth=0, antialiased=True)
@@ -145,45 +131,21 @@ class SampleListener(Leap.Listener):
         for hand in frame.hands:
 
             handType = "Left hand" if hand.is_left else "Right hand"
-            '''
-            print "  %s, id %d, position: %s" % (
-                handType, hand.id, hand.palm_position)
-            '''
             # Get the hand's normal vector and direction
             normal = hand.palm_normal
             direction = hand.direction
             position = hand.palm_position
             # Calculate the hand's pitch, roll, and yaw angles
-            '''
-            print "  pitch: %f degrees, roll: %f degrees, yaw: %f degrees" % (
-                direction.pitch * Leap.RAD_TO_DEG,
-                normal.roll * Leap.RAD_TO_DEG,
-                direction.yaw * Leap.RAD_TO_DEG)
-            '''
-            '''
-            print "  pitch: %f degrees, roll: %f degrees, yaw: %f degrees" % (
-                direction.pitch * Leap.RAD_TO_DEG,
-                normal.roll * Leap.RAD_TO_DEG,
-                direction.yaw * Leap.RAD_TO_DEG) '''
-
-            #print direction
-
-
 
             if checkPalm(hand):
                 rotateGraph(hand)
-
 
             if checkFist(hand):
                 zoomGraph(hand)
             else:
                 finishZoom()
 
-            if checkPointing(hand):
-              #  self.process_gestures(controller)
-                
-                print "Pointing!"
-                
+            if checkPointing(hand):             
                 finger = hand.fingers[0]
                 screen_to_choose = None
                 position = None
@@ -191,12 +153,10 @@ class SampleListener(Leap.Listener):
                 self.screens = controller.located_screens
                 #for screen in [self.screens[0]]:
                 for screen in self.screens:
-                    candidate = screen.intersect(finger, True)
-                        
+                    candidate = screen.intersect(finger, True)                   
                     x_pos = candidate.x
                     y_pos = candidate.y
-                        
-                        # Throws out datapoints when you point off screen - have to figure out in-bounds geometry for multiscreen
+                    # Throws out datapoints when you point off screen - have to figure out in-bounds geometry for multiscreen
                     if not (math.isnan(x_pos) or math.isnan(y_pos)):
                         screen_to_choose = screen
                         position = candidate
@@ -210,122 +170,9 @@ class SampleListener(Leap.Listener):
                 y_pixels = screen_to_choose.height_pixels - position.y * screen_to_choose.height_pixels
 
                 x_pixels,y_pixels = mouse_position_smoother.update((x_pixels,y_pixels))
-                print "x pix " + str(x_pixels)
-                print "y pix " + str(y_pixels)
                 
-                    # currently only sets it in relation to the primary screen
-                mouse.move(int(x_pixels), int(y_pixels))
-
-
-                #finger_pos = finger.joint_position(3)
-                #mouse.move(10*int(finger_pos[0]), 10* int(finger_pos[1]))
-            
-                
-                print(finger.joint_position(3))
-                
-               
-##                fig = plt.figure(figsize=(8, 6))
-##                ax = fig.add_subplot(111, axisbg='#FFFFCC')
-##
-##                x, y = 4*(np.random.rand(2, 100) - .5)
-##                ax.plot(x, y, 'o')
-##                ax.set_xlim(-2, 2)
-##                ax.set_ylim(-2, 2)
-##
-##                # set useblit = True on gtkagg for enhanced performance
-##                cursor = Cursor(ax, useblit=True, color='red', linewidth=2)
-##
-##                plt.show()
-##                                     
-                
-            else:
-                print "Not pointing!"
-
-
-
-            if checkDrawing(hand):
-                print "Drawing"
-            else:
-                print "now drawing"
-
-
-
-            
-
-            # Get arm bone
-            arm = hand.arm
-            '''
-            print "  Arm direction: %s, wrist position: %s, elbow position: %s" % (
-                arm.direction,
-                arm.wrist_position,
-                arm.elbow_position)
-            '''
-            
-            '''
-            sum = 0
-            for finger in hand.fingers:
-                print finger.bone[0]
-                
-                meta = finger.bone[0].direction
-                proxi = finger.bone[1].direction
-                inter = finger.bone[2].direction
-                dMetaProxi = meta.dot(proxi)
-                dProxiInter = proxi.dot(inter)
-                sum += dMetaProxi
-                sum += dProxiInter
-                
-            if sum <= minValue and getExtendedFingers(hand) == 0:
-                return True
-            else:
-                return False'''
-        '''
-        # Get tools
-        for tool in frame.tools:
-
-            print "  Tool id: %d, position: %s, direction: %s" % (
-                tool.id, tool.tip_position, tool.direction)
-
-        # Get gestures
-        for gesture in frame.gestures():
-            if gesture.type == Leap.Gesture.TYPE_CIRCLE:
-                circle = CircleGesture(gesture)
-
-                # Determine clock direction using the angle between the pointable and the circle normal
-                if circle.pointable.direction.angle_to(circle.normal) <= Leap.PI/2:
-                    clockwiseness = "clockwise"
-                else:
-                    clockwiseness = "counterclockwise"
-
-                # Calculate the angle swept since the last frame
-                swept_angle = 0
-                if circle.state != Leap.Gesture.STATE_START:
-                    previous_update = CircleGesture(controller.frame(1).gesture(circle.id))
-                    swept_angle =  (circle.progress - previous_update.progress) * 2 * Leap.PI
-
-                print "  Circle id: %d, %s, progress: %f, radius: %f, angle: %f degrees, %s" % (
-                        gesture.id, self.state_names[gesture.state],
-                        circle.progress, circle.radius, swept_angle * Leap.RAD_TO_DEG, clockwiseness)
-
-            if gesture.type == Leap.Gesture.TYPE_SWIPE:
-                swipe = SwipeGesture(gesture)
-                print "  Swipe id: %d, state: %s, position: %s, direction: %s, speed: %f" % (
-                        gesture.id, self.state_names[gesture.state],
-                        swipe.position, swipe.direction, swipe.speed)
-
-            if gesture.type == Leap.Gesture.TYPE_KEY_TAP:
-                keytap = KeyTapGesture(gesture)
-                print "  Key Tap id: %d, %s, position: %s, direction: %s" % (
-                        gesture.id, self.state_names[gesture.state],
-                        keytap.position, keytap.direction )
-
-            if gesture.type == Leap.Gesture.TYPE_SCREEN_TAP:
-                screentap = ScreenTapGesture(gesture)
-                print "  Screen Tap id: %d, %s, position: %s, direction: %s" % (
-                        gesture.id, self.state_names[gesture.state],
-                        screentap.position, screentap.direction )
-        '''
-        if not (frame.hands.is_empty and frame.gestures().is_empty):
-            print ""
+                # currently only sets it in relation to the primary screen
+                mouse.move(int(x_pixels), int(y_pixels))  
 
 
     def process_gestures(self, controller):
@@ -380,9 +227,6 @@ def main():
     finally:
         # Remove the sample listener when done
         controller.remove_listener(listener)
-
-
-
 
 
 def getExtendedFingers(hand): 
