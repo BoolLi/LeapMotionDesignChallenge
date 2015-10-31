@@ -92,17 +92,36 @@ class SampleListener(Leap.Listener):
                 direction.yaw * Leap.RAD_TO_DEG) '''
 
             #print direction
-            '''
+            
+
+            if checkPalm(hand):
+                ax.view_init(elev= -1 * move_velocity  * normal[2], azim = move_velocity  * math.atan(direction[2] / direction[0]))
+                plt.draw()
+                #print "drawn? " + str(ii)
+                time.sleep(0.04)
+            else:
+                print "not palm"
+
+
             if checkFist(hand):
                 print "Fist!"
             else:
                 print "Not Fist!"
-            '''
 
-            ax.view_init(elev= -1 * move_velocity  * normal[2], azim = move_velocity  * math.atan(direction[2] / direction[0]))
-            plt.draw()
-            #print "drawn? " + str(ii)
-            time.sleep(0.02)
+            if checkPointing(hand):
+                print "Pointing!"
+            else:
+                print "Not pointing!"
+
+
+
+            if checkDrawing(hand):
+                print "Drawing"
+            else:
+                print "now drawing"
+            
+
+
             
 
             # Get arm bone
@@ -114,25 +133,23 @@ class SampleListener(Leap.Listener):
                 arm.elbow_position)
             '''
             
-            # Get fingers
+            '''
+            sum = 0
             for finger in hand.fingers:
+                print finger.bone[0]
                 
-                print "    %s finger, id: %d, length: %fmm, width: %fmm" % (
-                    self.finger_names[finger.type],
-                    finger.id,
-                    finger.length,
-                    finger.width)
+                meta = finger.bone[0].direction
+                proxi = finger.bone[1].direction
+                inter = finger.bone[2].direction
+                dMetaProxi = meta.dot(proxi)
+                dProxiInter = proxi.dot(inter)
+                sum += dMetaProxi
+                sum += dProxiInter
                 
-                # Get bones
-                for b in range(0, 4):
-                    bone = finger.bone(b)
-                    print "      Bone: %s, start: %s, end: %s, direction: %s" % (
-                        self.bone_names[bone.type],
-                        bone.prev_joint,
-                        bone.next_joint,
-                        bone.direction)
-                
-            
+            if sum <= minValue and getExtendedFingers(hand) == 0:
+                return True
+            else:
+                return False'''
         '''
         # Get tools
         for tool in frame.tools:
@@ -221,24 +238,37 @@ def getExtendedFingers(hand):
     return len(hand.fingers.extended())
 
 
-def checkFist(hand):
-    sum = 0
-    for finger in hand.fingers:
-        print finger.bone[0]
-        '''
-        meta = finger.bone[0].direction
-        proxi = finger.bone[1].direction
-        inter = finger.bone[2].direction
-        dMetaProxi = meta.dot(proxi)
-        dProxiInter = proxi.dot(inter)
-        sum += dMetaProxi
-        sum += dProxiInter
-        '''
-    if sum <= minValue and getExtendedFingers(hand) == 0:
+def checkPalm(hand):
+    if getExtendedFingers(hand) == 5:
         return True
     else:
         return False
+
+def checkFist(hand):
+    if getExtendedFingers(hand) == 0:
+        return True
+    else:
+        return False
+
+def checkPointing(hand):
+    if getExtendedFingers(hand) == 1 :
+        result = False
+        for finger in hand.fingers:
+            if finger.type == 1:
+                result = True
+        return result
+    return False
    
+def checkDrawing(hand):
+    if getExtendedFingers(hand) == 2:
+        fingerArray = []
+        for finger in hand.fingers:
+            fingerArray += [finger.type]
+        if 0 in fingerArray and 1 in fingerArray:
+            return True
+        else:
+            return False
+
 '''
    for(var i=0;i<hand.fingers.length;i++){
       var finger = hand.fingers[i];
