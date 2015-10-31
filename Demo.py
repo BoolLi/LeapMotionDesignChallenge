@@ -104,8 +104,6 @@ class Demo(Tkinter.Tk):
     def get_lower_y(self):
         return self.entry3.get()
 
-##    def getColor(self):
-##        return self.entry6.get()
 
     def plotData(self):
         try:
