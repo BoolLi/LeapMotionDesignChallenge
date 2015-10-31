@@ -95,10 +95,7 @@ class SampleListener(Leap.Listener):
             
 
             if checkPalm(hand):
-                ax.view_init(elev= -1 * move_velocity  * normal[2], azim = move_velocity  * math.atan(direction[2] / direction[0]))
-                plt.draw()
-                #print "drawn? " + str(ii)
-                time.sleep(0.04)
+                rotateGraph(hand)
             else:
                 print "not palm"
 
@@ -269,25 +266,13 @@ def checkDrawing(hand):
         else:
             return False
 
-'''
-   for(var i=0;i<hand.fingers.length;i++){
-      var finger = hand.fingers[i];
-      var meta = finger.bones[0].direction();
-      var proxi = finger.bones[1].direction();
-      var inter = finger.bones[2].direction();
-      var dMetaProxi = Leap.vec3.dot(meta,proxi);
-      var dProxiInter = Leap.vec3.dot(proxi,inter);
-      sum += dMetaProxi;
-      sum += dProxiInter
-   }
-   sum = sum/10;
-
-   if(sum<=minValue && getExtendedFingers(hand)==0){
-       return true;
-   }else{
-       return false;
-   }
-'''
+def rotateGraph(hand):
+    normal = hand.palm_normal
+    direction = hand.direction
+    position = hand.palm_position
+    ax.view_init(elev= -1 * move_velocity  * normal[2], azim = move_velocity  * math.atan(direction[2] / direction[0]))
+    plt.draw()
+    time.sleep(0.04)
 
 
 if __name__ == "__main__":
