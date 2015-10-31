@@ -155,13 +155,10 @@ class SampleListener(Leap.Listener):
 
             #print direction
 
-            if demo.hasValidData() == False:
-                return
-
-            if (len(x) == 0):
+            if demo.hasNewData() == True:
                 x,y,z = demo.getData()
                 ax.plot_surface(x, y, z, rstride=1, cstride=1, cmap = "Oranges_r", linewidth=0, antialiased=True)
-                plt.show()
+                demo.consumeData()
 
 
             if checkPalm(hand):

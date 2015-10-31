@@ -5,7 +5,7 @@ import numpy as np
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2TkAgg
 
-RESOLUTION = 30
+RESOLUTION = 20
 
 class Demo(Tkinter.Tk):
     def __init__(self):
@@ -14,6 +14,7 @@ class Demo(Tkinter.Tk):
         self.Y = 0
         self.Z = 0
         self.hasData = False
+
 
         # GUI
 
@@ -175,6 +176,7 @@ class Demo(Tkinter.Tk):
             self.Y = Y
             self.Z = Z
             self.hasData = True
+
         except Exception as e:
             self.inputError()
 
@@ -182,8 +184,11 @@ class Demo(Tkinter.Tk):
         print "Input Error!"
 
     
-    def hasValidData(self):
+    def hasNewData(self):
         return self.hasData
+
+    def consumeData(self):
+        self.hasData = False
 
     def getData(self):
         return self.X, self.Y, self.Z
