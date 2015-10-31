@@ -14,6 +14,7 @@ class Demo(Tkinter.Tk):
         self.Y = 0
         self.Z = 0
         self.hasData = False
+        self.color = "Blues"
 
 
         # GUI
@@ -56,18 +57,28 @@ class Demo(Tkinter.Tk):
         self.entry5 = Tkinter.Entry(self)
         self.entry5.grid(row = 2, column = 1)
 
-        #Error
-        self.label6 = Tkinter.Label(self, text = "", padx = 3, pady = 3)
-        self.label6.grid(row = 2, column = 3)
-
         #Plot
         self.button1 = Tkinter.Button(self, text="Plot Function", command=self.plotData, anchor=W, padx=8)
         self.button1.grid(row = 3, column = 1)
 
         #Clear
         self.button2 = Tkinter.Button(self, text="Clear", command=self.clear, anchor=W, padx=8)
-        self.button2.grid(row = 3, column = 3)  
+        self.button2.grid(row = 3, column = 3)
+
+        #Color stuffs
+        self.label6 = Tkinter.Label(self, text = "Color:", padx = 3, pady = 3)
+        self.label6.grid(row = 2, column = 2)
+
+        colorList = ["Blues", "Greens", "Oranges", "Purples", "Reds", "Greys", "pink"]
+
+        var = Tkinter.StringVar()
+        var.set(colorList[2])
         
+        self.entry6 = Tkinter.OptionMenu(self, var, *colorList)
+        self.entry6.grid(row=2,column=3)
+    
+
+        #self.entry6.pack()
 
 ##        self.entry1 = Tkinter.Entry(self)
 ##        self.entry2 = Tkinter.Entry(self)
@@ -150,6 +161,9 @@ class Demo(Tkinter.Tk):
     def get_lower_y(self):
         return self.entry3.get()
 
+    def getColor(self):
+        self.color = self.entry6.get()
+
     def plotData(self):
         try:
             infix = self.get_function()
@@ -191,4 +205,4 @@ class Demo(Tkinter.Tk):
         self.hasData = False
 
     def getData(self):
-        return self.X, self.Y, self.Z
+        return self.X, self.Y, self.Z, self.color
