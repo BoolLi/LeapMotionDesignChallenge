@@ -1,4 +1,5 @@
 import Tkinter
+from PIL import Image, ImageTk
 from Tkinter import *
 from infix2postfix import *
 import numpy as np
@@ -17,11 +18,9 @@ class Demo(Tkinter.Tk):
         self.var= "Blues"
         self.colorVal = "Blues"
 
-
         # GUI
-
         Tkinter.Tk.__init__(self)
-        self.title("Very cool program")
+        self.title("ESCALA 1.0")
 
         #MinX
         self.label1 = Tkinter.Label(self, text = "MinX", padx = 3, pady = 3)
@@ -77,6 +76,12 @@ class Demo(Tkinter.Tk):
         
         self.entry6 = Tkinter.OptionMenu(self, self.var, *colorList)
         self.entry6.grid(row=2,column=3)
+
+        img = ImageTk.PhotoImage(file ="Instructions.gif")
+        self.panel = Tkinter.Label(self, image = img)
+        self.panel.image = img
+        self.panel.grid(row = 4, column = 0, columnspan=4,rowspan=1)
+        
 
     def clear(self):
         self.entry1.delete(0,END)
